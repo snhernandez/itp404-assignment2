@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+
+	<script src="jquery-3.2.1.min.js"></script>
+	<script src="handlebars-v4.0.10.js"></script>
+
+	<style>
+		.clear{
+			clear: both;
+		}
+	</style>	
+</head>
+
+<body>
+	<input type="text" name="search" id="subreddit">
+	<button type="button" id="search" onclick="postInfo()">Search</button>
+
+	<div class="clear"></div>
+
+	<div id="post"></div>
+
+	<template id="post-template">
+		<div class="post">
+			{{#each .}}
+			<h4>Title: {{Title}}</h4>
+			<p>URL: {{url}}</p>
+			<p>Score: {{score}}</p>
+			{{#if comments}}
+				<p>Number of Comments: {{comments}}</p>
+			{{else}}
+				<p>No Comments</p>
+			{{/if}}
+			{{/each}}
+		</div>		
+	</template>
+
+	<script>
+		var postTemplate = document.getElementById('post-template').innerHTML;
+		var renderPost = Handlebars.compile(postTemplate);
+
+		function postInfo(){
+			
+			$.getJSON("https://www.reddit.com/r/" + $('#subreddit').val() + ".json").then(function(results){
+				var allPosts = [];
+
+				for (var i=0; i<results.data.children.length; i++){
+					var post = results.data.children[i];
+
+					var postTitle = post.data.title;
+					var postURL = post.data.url;
+					var postScore = post.data.score;
+					var postComments = post.data.num_comments;
+
+					var info = {
+						Title: postTitle,
+						url: postURL,
+						score: postScore,
+						comments: postComments
+					}
+
+					allPosts.push(info);						
+				};
+
+				document.getElementById('post').innerHTML = renderPost(allPosts)
+			}, function(){
+				document.getElementById('post').innerHTML = '<p>an error occured</p>'
+			});
+		};
+	</script>
+
+</body>
+</html>
